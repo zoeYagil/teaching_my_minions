@@ -38,6 +38,26 @@ mpl.use('SVG')
 # Set font settings for better compatibility with SVG text
 mpl.rcParams['svg.fonttype'] = 'none'  # Do not convert fonts to paths
 
+base_dir = "/Users/danielsinausia/Documents/Experiments/"
+include_folders = {"DS_00132", "DS_00133", "DS_00134", "DS_00127", "DS_00163", "DS_00131",
+                       "DS_00138", "DS_00135", "DS_00139", "DS_00136", "DS_00140", "DS_00137",
+                       "DS_00141", "DS_00144", "DS_00142", "DS_00145", "DS_00143", "DS_00146",
+                       "DS_00181", "DS_00180", "DS_00148", "DS_00152", "DS_00149", "DS_00153"}
+
+
+
+
+
+
+
+##########################################################
+##########################################################
+##########################################################
+#%% NOT TO TOUCH THINGS BELOW THIS LINE
+##########################################################
+##########################################################
+##########################################################
+
 r2_results = []
 conditions = {
     "start_reciprocal_cm": 1101,
@@ -482,13 +502,10 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
 
 if __name__ == "__main__":
     # Subfolders to include
-    include_folders = {"DS_00132", "DS_00133", "DS_00134", "DS_00127", "DS_00163", "DS_00131",
-                       "DS_00138", "DS_00135", "DS_00139", "DS_00136", "DS_00140", "DS_00137",
-                       "DS_00141", "DS_00144", "DS_00142", "DS_00145", "DS_00143", "DS_00146",
-                       "DS_00181", "DS_00180", "DS_00148", "DS_00152", "DS_00149", "DS_00153"}
+    include_folders = include_folders
 
     # Base directory
-    base_dir = "/Users/danielsinausia/Documents/Experiments/"
+    base_dir = base_dir
 
     for folder_name in include_folders:
         # Path to the Reconstruction_based_on_CO_peak_in_eigenspectra folder
