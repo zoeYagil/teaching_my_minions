@@ -295,7 +295,7 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
     
     file_name = os.path.basename(file_path)
     
-    if file_name.startswith("DS") or if file_name.startswith("CZ"):
+    if file_name.startswith("DS") or file_name.startswith("CZ"):
         # Process for files starting with "DS"
         df = pd.read_csv(file_path, header=None, skiprows=1)  # Original 955, others 0
         df = df.iloc[:, :911]  # Activate for original
