@@ -275,7 +275,7 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
     
     file_name = os.path.basename(file_path)
     
-    if file_name.startswith("DS"):
+    if file_name.startswith("DS") or if file_name.startswith("CZ"):
         # Process for files starting with "DS"
         df = pd.read_csv(file_path, header=None, skiprows=1)  # Original 955, others 0
         df = df.iloc[:, :911]  # Activate for original
@@ -504,18 +504,15 @@ if __name__ == "__main__":
             csv_files.extend([
                 os.path.join(root, file) 
                 for file in files 
-                if file.endswith(".csv") and (file.startswith("DS") or file.startswith("ReconstructedData"))
+                if file.endswith(".csv") and (file.startswith("DS") or file.startswith("CZ") or file.startswith("ReconstructedData"))
             ])
 
         if not csv_files:
             print(f"No matching CSV files found in {reconstruction_path}")
             continue
 
-        # Process each filtered CSV file
         for csv_file in csv_files:
             print(f"Processing file: {csv_file}")
-            
-            # Determine experiment classification if it matches a suffix pattern
             experiment_classification = '_unknown'
             for suffix in ["_07", "_08", "_09"]:
                 if f"{folder_name}{suffix}.csv" in csv_file:
