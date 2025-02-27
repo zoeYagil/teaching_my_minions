@@ -289,50 +289,30 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
         reciprocal_cm = df.iloc[:, 0]  # First column as wavenumbers
     
 
-    
-    # Determine the number of peaks and generate labels dynamically
+
     num_peaks = len(mean_values)
     labels = [mean_values[i] for i in range(num_peaks)]
     colors = magma(np.linspace(0, 1, num_peaks))
-    
-    
-    
-    # Create a folder using those values
     folder_name = f"{start_reciprocal_cm}_to_{end_reciprocal_cm}"
     os.makedirs(folder_name, exist_ok=True)
-    
 
-    # Find the indices corresponding to the range in the reciprocal centimeters column
     start_index = np.where(reciprocal_cm >= start_reciprocal_cm)[0][0]
     end_index = np.where(reciprocal_cm <= end_reciprocal_cm)[0][-1]
 
     experiment_number = spectrum_to_plot_as_example
     trimmed_wavenumbers = df.iloc[start_index:end_index+1, 0].values
     spectrum = df.iloc[start_index:end_index+1, experiment_number].values
-    
-    # Find the indices corresponding to the background points
+
     index_start_bkg = np.where(trimmed_wavenumbers >= start_reciprocal_cm_bkg)[0][0]
     index_end_bkg = np.where(trimmed_wavenumbers <= end_reciprocal_cm_bkg)[0][-1]
-    
-    # Calculate the slope of the background line
     slope = (spectrum[index_end_bkg] - spectrum[index_start_bkg]) / (trimmed_wavenumbers[index_end_bkg] - trimmed_wavenumbers[index_start_bkg])
     
-    # Calculate the intercept to force the line through start_reciprocal_cm_bkg and end_reciprocal_cm_bkg
+
     intercept = spectrum[index_start_bkg] - slope * trimmed_wavenumbers[index_start_bkg]
-    
-    # Calculate the linear background array
     background_array = slope * trimmed_wavenumbers + intercept
-    
-    # Subtract the linear background array from the original spectrum
     spectrum_corrected = spectrum - background_array
-        
-    # Perform the curve fitting
     popt, _ = curve_fit(combined_function, trimmed_wavenumbers, spectrum_corrected, p0=initial_params, maxfev=10000)
-
-    # Extract the optimized parameters for each Gaussian component
     amps = popt
-
-    # Generate the individual Gaussian components and fitted curve
     gaussians = [gaussian(trimmed_wavenumbers, amp, mean, sigma) for amp, mean, sigma in zip(amps, mean_values, sigma_values)]
     fitted_curve = combined_function(trimmed_wavenumbers, *popt)
     correlation_coefficient, _ = pearsonr(spectrum_corrected, fitted_curve)
@@ -345,9 +325,7 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
         'File': os.path.basename(file_path),
         'R_squared': r_squared
     })
-
-        
-    # Plot the individual Gaussian components with color fill
+                              
     fig, ax = plt.subplots(figsize=(18, 8))
     for i, (gaussian_component, label, color) in enumerate(zip(gaussians, labels, colors)):
         plt.plot(reciprocal_cm[start_index:end_index+1], gaussian_component, label=label, color=color)
@@ -376,36 +354,21 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
     html_content = mpld3.fig_to_html(plt.gcf())  # Convert Matplotlib figure to HTML
     with open(html_path, "w") as html_file:
         html_file.write(html_content)
-
-
     plt.show()
 
-    # Save the fitted curve and the Gaussians to a CSV file
     fitted_values = combined_function(reciprocal_cm[start_index:end_index+1], *popt)
     fit_df = pd.DataFrame({'Reciprocal_cm': reciprocal_cm[start_index:end_index+1], 'Fitted_Values': fitted_values})
     for i, (gaussian_component, label) in enumerate(zip(gaussians, labels)):
         fit_df[f'Gaussian_{label}'] = gaussian_component
     fit_csv_path = os.path.join(folder_path, f"{filename}_fitted_values.csv")
     fit_df.to_csv(fit_csv_path, index=False)
-    
-    
-    
-    
-    
-    # Calculate time for each experiment
     experiment_numbers = df.columns[1:]
     experiment_time = np.arange(len(experiment_numbers)) * 1.1
-    
-    # Initialize a dictionary to store integrated areas for each peak
+
     integrated_areas = {f'Peak {i}': [] for i in range(num_peaks)}
     
-
-    # Extract the reciprocal centimeters column
     reciprocal_cm = df.iloc[:, 0]
     
-    
-
-    # Iterate over each experiment and calculate the integrated area for each peak
     for experiment_number in experiment_numbers:
         
         start_index = np.where(reciprocal_cm >= start_reciprocal_cm)[0][0]
@@ -414,32 +377,17 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
         trimmed_wavenumbers = df.iloc[start_index:end_index+1, 0].values
         spectrum = df.iloc[start_index:end_index+1, experiment_number].values
         
-        # Find the indices corresponding to the background points
         index_start_bkg = np.where(trimmed_wavenumbers >= start_reciprocal_cm_bkg)[0][0]
         index_end_bkg = np.where(trimmed_wavenumbers <= end_reciprocal_cm_bkg)[0][-1]
         
-        # Calculate the slope of the background line
         slope = (spectrum[index_end_bkg] - spectrum[index_start_bkg]) / (trimmed_wavenumbers[index_end_bkg] - trimmed_wavenumbers[index_start_bkg])
-        
-        # Calculate the intercept to force the line through start_reciprocal_cm_bkg and end_reciprocal_cm_bkg
         intercept = spectrum[index_start_bkg] - slope * trimmed_wavenumbers[index_start_bkg]
-        
-        # Calculate the linear background array
         background_array = slope * trimmed_wavenumbers + intercept
-        
-        # Subtract the linear background array from the original spectrum
         spectrum_corrected = spectrum - background_array
-
-        # Perform the curve fitting
-        popt, _ = curve_fit(combined_function, trimmed_wavenumbers, spectrum_corrected, p0=initial_params, maxfev=10000)
-    
-        # Extract the optimized parameters for each Gaussian component
+        popt, _ = curve_fit(combined_function, trimmed_wavenumbers, spectrum_corrected, p0=i
         amps = popt
-    
-        # Generate the individual Gaussian components and fitted curve
         gaussians = [gaussian(trimmed_wavenumbers, amp, mean, sigma) for amp, mean, sigma in zip(amps, mean_values, sigma_values)]
 
-        # Calculate and store the integrated areas for each peak
         for i in range(num_peaks):
             area = trapz(gaussians[i], trimmed_wavenumbers)
             integrated_areas[f'Peak {i}'].append(area)
@@ -453,7 +401,6 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
     integrated_areas_df = integrated_areas_df[['Time (s)'] + [col for col in integrated_areas_df.columns if col != 'Time (s)']]
     csv_filename = os.path.join(folder_path, f"{filename}_integrated_areas.csv")
     integrated_areas_df.to_csv(csv_filename, index=False)
-    # Plot the integrated areas over time for each peak
     fig, ax = plt.subplots(figsize=(18, 8))
     
     for i, peak_label in enumerate(integrated_areas.keys()):
@@ -466,8 +413,6 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
     plt.ylabel('Integrated Area (a.u.)', fontsize=18)
     #plt.ylim(-6,5)
     plt.xlim(0,1000)
-    
-    # Add vertical lines at the specified intersections
     intersections = [0,100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
     for intersection in intersections:
         plt.axvline(x=intersection, linestyle='--', color='black', alpha=0.1)
@@ -493,8 +438,6 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
         text_x = (x_start + x_end) / 2  # Calculate the x-coordinate for the text label
         plt.text(text_x, plt.ylim()[1], text_label, rotation=45, va='bottom', ha='center', fontsize=16)
     
-    
-    # Save the figure as PNG, EPS, and SVG inside the folder
     folder = os.path.dirname(file_path)
     folder_path = os.path.join(folder, folder_name)
     os.makedirs(folder_path, exist_ok=True)
@@ -504,7 +447,6 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
     eps_path = os.path.join(folder_path, f"{filename}.eps")
     svg_path = os.path.join(folder_path, f"{filename}.svg")
     
-    # Adjust subplot layout to accommodate the title
     plt.subplots_adjust(top=0.9)  # You can modify this value to suit your needs
        
     plt.savefig(png_path)
@@ -585,7 +527,6 @@ if __name__ == "__main__":
                 experiment_classification=experiment_classification,
                 **conditions
             )
-# Save R^2 values to a CSV file
 if r2_results:
     r2_df = pd.DataFrame(r2_results)
     r2_csv_path = os.path.join(base_dir, "r2_values.csv")
@@ -600,16 +541,12 @@ else:
 import os
 import pandas as pd
 import numpy as np
-
-# Initialize a list to store results
 results = []
 processed_files = set()  # Set to track processed file paths
 
 # Specify the target peaks and time
 target_peaks = [3680, 3520, 3360, 3210, 3100, 2870]
 target_time = 195.8
-
-# Function to recursively find all _integrated_areas.csv files in subfolders
 def find_integrated_area_files(base_path, ignore_folders):
     integrated_area_files = []
     for root, dirs, files in os.walk(base_path):  # Recursively walk through folders
@@ -620,7 +557,6 @@ def find_integrated_area_files(base_path, ignore_folders):
                 integrated_area_files.append(os.path.join(root, file))
     return integrated_area_files
 
-# Folders to ignore (case-insensitive)
 ignore_folders = {"raw data", 
                   "1635_peak", 
                   "CO peak", 
@@ -630,21 +566,16 @@ ignore_folders = {"raw data",
                   #"1101_to_3999", 
                   "non-mean-centered", 
                   "Stark shift"}
-
-# Loop through the include folders and extract the integrated areas
 for folder_name in include_folders:
     folder_path = os.path.join(base_dir, folder_name)
     if not os.path.exists(folder_path):
         print(f"Folder not found: {folder_path}")
         continue
-
-    # Find all _integrated_areas.csv files in the folder and subfolders, ignoring specified folders
     integrated_files = find_integrated_area_files(folder_path, ignore_folders)
     if not integrated_files:
         print(f"No integrated areas files found in {folder_path}")
         continue
 
-    # Process each integrated area file
     for full_path in integrated_files:
         file_key = (os.path.basename(full_path), os.path.dirname(full_path))  # Unique identifier: (File, Folder)
         if file_key in processed_files:  # Skip if already processed
@@ -655,12 +586,10 @@ for folder_name in include_folders:
         print(f"Processing file: {full_path}")
         df_integrated = pd.read_csv(full_path)
 
-        # Check for 'Time (s)' column
         if 'Time (s)' not in df_integrated.columns:
             print(f"'Time (s)' column not found in {full_path}")
             continue
 
-        # Extract the row for the target time
         row = df_integrated[np.isclose(df_integrated['Time (s)'], target_time, atol=0.1)]
         if not row.empty:
             # Extract the top-level folder name for Experiment
@@ -679,7 +608,6 @@ for folder_name in include_folders:
         else:
             print(f"Target time {target_time} not found in {full_path}")
 
-# Convert results to DataFrame
 if results:
     results_df = pd.DataFrame(results)
 
