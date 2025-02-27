@@ -404,7 +404,7 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
         intercept = spectrum[index_start_bkg] - slope * trimmed_wavenumbers[index_start_bkg]
         background_array = slope * trimmed_wavenumbers + intercept
         spectrum_corrected = spectrum - background_array
-        popt, _ = curve_fit(combined_function, trimmed_wavenumbers, spectrum_corrected, p0=i
+        popt, _ = curve_fit(combined_function, trimmed_wavenumbers, spectrum_corrected, p0=initial_params, maxfev=10000)
         amps = popt
         gaussians = [gaussian(trimmed_wavenumbers, amp, mean, sigma) for amp, mean, sigma in zip(amps, mean_values, sigma_values)]
 
