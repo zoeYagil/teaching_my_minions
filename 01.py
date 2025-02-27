@@ -1,22 +1,5 @@
 '''
-two parts. First section does deconvolution and integration. Second one extracts integrated values of 
-the peaks that you choose at a certain time to use later in the water bar charts
-
-•	The script looks for specific files in folders listed in include_folders.
-•	Files matching suffixes (_07, _08, _09) are identified and processed.
-•	Additionally, specific patterns (ReconstructedData_PCs1.csv, etc.) in subfolders are considered.
-•	File Validation:
-•	Files starting with "DS" are processed differently from those starting with "Reconstructed".
-•	The code checks for the presence of required files (alternating_file, patterns) and processes them if they exist.
-
-
-I added last minute the following code, if there are errors, check if it works without it:
-    
-    html_path = os.path.join(folder_path, f"{filename}.html")
-    html_content = mpld3.fig_to_html(plt.gcf())  # Convert Matplotlib figure to HTML
-    with open(html_path, "w") as html_file:
-        html_file.write(html_content)
-
+fit gaussians and integrate areas
 
 '''
 
