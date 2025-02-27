@@ -432,7 +432,7 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
     plt.xlabel('Time (s)', fontsize=18)
     plt.ylabel('Integrated Area (a.u.)', fontsize=18)
     #plt.ylim(-6,5)
-    plt.xlim(0,1000)
+    #plt.xlim(0,1000)
     intersections = [0,100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
     for intersection in intersections:
         plt.axvline(x=intersection, linestyle='--', color='black', alpha=0.1)
