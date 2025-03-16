@@ -54,6 +54,15 @@ magnitude_threshold = 0.3 #detect changes in trend by comparing the differnece b
 
 
 
+
+
+
+
+
+
+
+
+
 folder = os.path.dirname(file_path)
 #folder_path = os.path.join(folder, 'PC1_discontinuities/areas')
 folder_path = os.path.join(folder, 'PC1_discontinuities/pH')
