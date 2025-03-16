@@ -7,6 +7,17 @@ mpl.rcParams['svg.fonttype'] = 'none'
 
 
 file_path = '/Users/danielsinausia/Documents/Experiments/DS_00145/PC2-15/1101_to_3999/PC2-15_withoutbackground_correction_integrated_areas.csv'
+
+
+############################################################################################################
+################## NOT TO CHANGE ANYTHING BELOW THIS LINE######################################################
+############################################################################################################
+
+
+
+
+
+
 df = pd.read_csv(file_path, skiprows=0)
 parent_dir = os.path.dirname(file_path)
 
