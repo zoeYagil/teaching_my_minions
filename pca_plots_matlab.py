@@ -37,7 +37,7 @@ if not os.path.exists(pca_plots_directory):
 
 
 files_in_folder = os.listdir(folder_path)
-csv_files = [file for file in files_in_folder if file.startswith("DS_") or file.startswith("CZ_") and file.endswith(".csv")]
+csv_files = [file for file in files_in_folder if file.startswith("DS_") or file.startswith("CZ_") or file.startswith("ZY_") and file.endswith(".csv")]
 
 if csv_files:
     csv_file = csv_files[0]
@@ -97,7 +97,7 @@ def create_score_plot(df, title, subsubfolder_path, range_start, range_end, star
     plt.xlabel("Time (s)")
     plt.ylabel("Score (a.u.)")
     plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left')
-    plt.xlim(0, 1000)
+    #plt.xlim(0, 1000)
     ax.grid(False)
     
     intersections = [0,100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
@@ -139,7 +139,7 @@ def create_stacked_score_plot(df, title, subsubfolder_path, range_start, range_e
     plt.xlabel("Time (s)")
     plt.ylabel("Score (a.u.)")
     plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left')
-    plt.xlim(0, 1000)
+    #plt.xlim(0, 1000)
     ax.grid(False)
     intersections = [0,100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
     for intersection in intersections:
