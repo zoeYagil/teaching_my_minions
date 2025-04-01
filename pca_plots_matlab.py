@@ -30,6 +30,8 @@ mpl.use('SVG')
 mpl.rcParams['svg.fonttype'] = 'none'  # Do not convert fonts to paths
 
 folder_path = r"/Users/danielsinausia/Documents/Experiments/DS_00133"
+
+experiment_classification = '_08'
 base_plot_directory = folder_path
 pca_plots_directory = os.path.join(base_plot_directory, "PCA plots")
 if not os.path.exists(pca_plots_directory):
