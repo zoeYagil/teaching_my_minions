@@ -192,7 +192,7 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
                                                                 1,
                                                                 1,
                                                                 1,
-                                                                1,1,1,1,1,1,1,1
+                                                                1,1,1,1,1,1,1,1,1,1
                                                                 
                                                    ] #Peak positions obtained from 10.1021/jacsau.1c00281. The choice of 1 and 10 for amplitude and std dev are arbitrary, chosen with the help of chatGPT, but since I am interested in the evolution of the peaks rather than the absolute numbers, I'll go with it
          initial_params = initial_amplitudes# Define mean and sigma values for Gaussian components
@@ -208,6 +208,7 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
                                     2350, # CO2 (aq)
                                     2335,
                                     2320, # CO2 \cite{winkler2022} assym strect
+                        2198, 2141, # malachite
                                         2127, # libration + bending \cite{verma2018, jiachen2022}
                                         #2100,
                                             2084, # HFB CO \cite{an2023}
@@ -242,7 +243,7 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
                                     10,
                                     10,
                                     3,
-                                    10,
+                                    10, 15, 15,
                                         100,
                                     
                                             3,
