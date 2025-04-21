@@ -1,4 +1,6 @@
 '''
+Comes from after_rebuttal_break/Florian/after_meeting_charlotte_adding_new_curve/normalizing_all_PCs_together_per_file.py
+
 
 Warning: this doesn´t just normalize columns 1:16. This normalizes first only column 1, then columns 1:2, then columns 1:3, ... so resulting csv file has all these combinations
 
