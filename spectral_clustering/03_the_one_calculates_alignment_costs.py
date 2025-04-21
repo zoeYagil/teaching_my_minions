@@ -24,6 +24,13 @@ row_range = (80, 180)
 
 
 
+def minmax_scale(data):
+    min_val = np.min(data)
+    max_val = np.max(data)
+    range_val = max_val - min_val
+    if range_val == 0:  # Handle case where all values are the same
+        return np.zeros_like(data)
+    return (data - min_val) / range_val
 
 
 
@@ -223,7 +230,7 @@ for folder_name in include_folders:
                     os.makedirs(subfolder_path, exist_ok=True)
                     data = pd.read_csv(file_path, delimiter="\t", header=None).iloc[row_range[0]:row_range[1], 1:16]
                     data_smoothed = data.apply(smooth_sequence, axis=0)
-                    data_normalized = normalize_file_absolute(data_smoothed)
+                    data_normalized = minmax_scale(data_smoothed)
                     results = []
                     for col_idx in range(data_normalized.shape[1]):
                         variable = data_normalized.iloc[:, col_idx].values
