@@ -27,24 +27,23 @@ MAGNITUDE_THRESHOLD = 0.15
 
 # --- File paths ---
 file_paths = [
-    "/Users/charlottevogt/Documents/Manuscripts/Emergent Behavior Discontinuities - Periodicity/ML Model Test April 2025/More Data/CZ_00026 - 0 rpm.csv",
+    r"C:\Users\zoe-talya.ya\OneDrive - Technion\Documents\PhD\ML model test Zoe\ZY_00009 - 5 rpm.csv",
     
-    "/Users/charlottevogt/Documents/Manuscripts/Emergent Behavior Discontinuities - Periodicity/ML Model Test April 2025/More Data/ZY_00009 - 5 rpm.csv",
+    r"C:\Users\zoe-talya.ya\OneDrive - Technion\Documents\PhD\ML model test Zoe\ZY_00003 - 10 rpm.csv",
+    r"C:\Users\zoe-talya.ya\OneDrive - Technion\Documents\PhD\ML model test Zoe\ZY_00002 - 10 rpm.csv",
     
-    "/Users/charlottevogt/Documents/Manuscripts/Emergent Behavior Discontinuities - Periodicity/ML Model Test April 2025/More Data/ZY_00002 - 10 rpm.csv",
-    "/Users/charlottevogt/Documents/Manuscripts/Emergent Behavior Discontinuities - Periodicity/ML Model Test April 2025/More Data/ZY_00003 - 10 rpm.csv",
+    r"C:\Users\zoe-talya.ya\OneDrive - Technion\Documents\PhD\ML model test Zoe\ZY_00001 - 20 rpm.csv",
+    #r"C:\Users\zoe-talya.ya\OneDrive - Technion\Documents\PhD\ML model test Zoe\ZY_00005 - 20 rpm.csv",
+    r"C:\Users\zoe-talya.ya\OneDrive - Technion\Documents\PhD\ML model test Zoe\ZY_00007 - 20 rpm.csv",
     
-    "/Users/charlottevogt/Documents/Manuscripts/Emergent Behavior Discontinuities - Periodicity/ML Model Test April 2025/More Data/ZY_00005 - 20 rpm.csv",
-    "/Users/charlottevogt/Documents/Manuscripts/Emergent Behavior Discontinuities - Periodicity/ML Model Test April 2025/More Data/ZY_00007 - 20 rpm.csv",
+    r"C:\Users\zoe-talya.ya\OneDrive - Technion\Documents\PhD\ML model test Zoe\ZY_00004 - 40 rpm.csv",
     
-    "/Users/charlottevogt/Documents/Manuscripts/Emergent Behavior Discontinuities - Periodicity/ML Model Test April 2025/More Data/ZY_00008 - 30 rpm.csv",
-    
-    "/Users/charlottevogt/Documents/Manuscripts/Emergent Behavior Discontinuities - Periodicity/ML Model Test April 2025/More Data/ZY_00004 - 40 rpm.csv",
-    "/Users/charlottevogt/Documents/Manuscripts/Emergent Behavior Discontinuities - Periodicity/ML Model Test April 2025/More Data/CZ_00023 - 40 rpm.csv"
+    r"C:\Users\zoe-talya.ya\OneDrive - Technion\Documents\PhD\ML model test Zoe\ZY_00008 - 30 rpm.csv",
+   
 ]
 
 
-outpath = '/Users/charlottevogt/Documents/Manuscripts/Emergent Behavior Discontinuities - Periodicity/ML Model Test April 2025/Discontinuity counting and analysis with ML/Testing How Many Latent Dimensions/output.csv'
+outpath =r'C:\Users\zoe-talya.ya\OneDrive - Technion\Documents\PhD\ML model test Zoe_02\output.csv'
 plot_folder = os.path.dirname(outpath)
 
 # --- Define the new discontinuity detection function ---
@@ -176,22 +175,14 @@ for latent_dim in latent_dims_to_test:
 
     total_discontinuities = 0
     sample_discontinuities = {}
-    
-    # Initialize discontinuity counts for each sample
     for sid in np.unique(sample_ids):
         sample_discontinuities[sid] = 0
-    
-    # Detect discontinuities using the new method
     for dim in range(latent_features.shape[1]):
         for sid in np.unique(sample_ids):
             idx = sample_ids == sid
             signal = latent_features[idx, dim]
-            
-            # Skip if signal is too short
             if len(signal) < SG_WINDOW_LENGTH:
                 continue
-                
-            # Use the new discontinuity detection function
             jump_indices, jump_magnitudes = analyze_discontinuities(
                 signal,
                 SG_WINDOW_LENGTH,
@@ -204,17 +195,11 @@ for latent_dim in latent_dims_to_test:
             disc_count = len(jump_indices)
             total_discontinuities += disc_count
             sample_discontinuities[sid] += disc_count
-            
-            # If we want to save specific discontinuity information, we could add it here
             if disc_count > 0:
                 sample_name = np.unique(labels[idx])[0]
-                # Convert boolean mask to indices first
-                idx_array = np.where(idx)[0]
-                # Then get the time indices for these points
-                time_indices_for_sample = time_indices[idx_array]
-                # Finally index into these with jump_indices
-                times = time_indices_for_sample[jump_indices]
-                
+                time_array = np.array(time_indices)[idx]  # Slice the time array for the current sample
+                times = time_array[jump_indices]          # Index with jump_indices (which are relative to this sample)
+
                 for j, mag, t in zip(jump_indices, jump_magnitudes, times):
                     results_data.append({
                         'latent_dim': latent_dim,
@@ -229,13 +214,11 @@ for latent_dim in latent_dims_to_test:
     discontinuity_counts.append(total_discontinuities)
     print(f"✅ latent_dim={latent_dim} → Discontinuities Detected: {total_discontinuities}, Loss: {final_loss:.5f}")
     
-    # Print breakdown by sample
+
     for sid in np.unique(sample_ids):
         idx = sample_ids == sid
         sample_name = np.unique(labels[idx])[0]
         print(f"  - {sample_name}: {sample_discontinuities[sid]} discontinuities")
-
-# Save detailed results
 if results_data:
     results_df = pd.DataFrame(results_data)
     results_df.to_csv(outpath, index=False)
@@ -269,7 +252,6 @@ plt.savefig(os.path.join(plot_folder, "discontinuities_vs_latent_dim.png"), dpi=
 plt.savefig(os.path.join(plot_folder, "discontinuities_vs_latent_dim.svg"), format="svg", dpi=300)
 plt.close()
 
-# Create and save metadata file
 metadata = {
     'SG Filter Window Length': [SG_WINDOW_LENGTH],
     'SG Filter Polyorder': [SG_POLYORDER],
