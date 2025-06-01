@@ -51,6 +51,216 @@ def multi_exp_func(x, *params):
     
     return y
 
+# Save exponential terms analysis for multi-segment fits
+def save_exponential_terms_analysis():
+    """Save CSV with exponential terms from multi-segment fits"""
+    
+    exponential_terms_data = []
+    
+    # Process regular multi-segment exponential results
+    if 'multi_segment_exponential' in fit_results and fit_results['multi_segment_exponential']:
+        print("Processing regular multi-segment exponential terms...")
+        
+        # Extract b parameters (exponential terms) from regular multi-segment fit
+        regular_b_params = []
+        if isinstance(fit_results['multi_segment_exponential']['params'][0], tuple):
+            # If params are stored as tuples (a, b, c)
+            for i, (a, b, c) in enumerate(fit_results['multi_segment_exponential']['params']):
+                regular_b_params.append(b)
+                exponential_terms_data.append({
+                    'Segment_Number': i + 1,
+                    'Segment_Type': 'Even' if (i + 1) % 2 == 0 else 'Odd',
+                    'Regular_Multi_Segment_Exponential_Term': b,
+                    'Regular_Multi_Segment_a_Parameter': a,
+                    'Regular_Multi_Segment_c_Parameter': c,
+                    'Regular_Multi_Segment_Equation': f"{a:.6f} * exp({b:.6f} * x) + {c:.6f}"
+                })
+        else:
+            # If params are stored as dictionaries
+            for i, params in enumerate(fit_results['multi_segment_exponential']['params']):
+                b = params['b']
+                regular_b_params.append(b)
+                exponential_terms_data.append({
+                    'Segment_Number': i + 1,
+                    'Segment_Type': 'Even' if (i + 1) % 2 == 0 else 'Odd',
+                    'Regular_Multi_Segment_Exponential_Term': b,
+                    'Regular_Multi_Segment_a_Parameter': params['a'],
+                    'Regular_Multi_Segment_c_Parameter': params['c'],
+                    'Regular_Multi_Segment_Equation': f"{params['a']:.6f} * exp({b:.6f} * x) + {params['c']:.6f}"
+                })
+        
+        # Calculate averages for even and odd segments (regular multi-segment)
+        even_segments_regular = [b for i, b in enumerate(regular_b_params) if (i + 1) % 2 == 0]
+        odd_segments_regular = [b for i, b in enumerate(regular_b_params) if (i + 1) % 2 == 1]
+        
+        avg_even_regular = np.mean(even_segments_regular) if even_segments_regular else np.nan
+        avg_odd_regular = np.mean(odd_segments_regular) if odd_segments_regular else np.nan
+        
+        print(f"Regular multi-segment - Average exponential term for even segments: {avg_even_regular:.6f}")
+        print(f"Regular multi-segment - Average exponential term for odd segments: {avg_odd_regular:.6f}")
+        
+        # Calculate max absolute exponential terms and the ratio
+        max_abs_even_regular = max([abs(b) for i, b in enumerate(regular_b_params) if (i + 1) % 2 == 0]) if even_segments_regular else np.nan
+        max_abs_odd_regular = max([abs(b) for i, b in enumerate(regular_b_params) if (i + 1) % 2 == 1]) if odd_segments_regular else np.nan
+        overall_max_abs_regular = max([abs(b) for b in regular_b_params]) if regular_b_params else np.nan
+        
+        if not np.isnan(overall_max_abs_regular) and overall_max_abs_regular != 0:
+            ratio_regular = (max_abs_even_regular - max_abs_odd_regular) / overall_max_abs_regular
+        else:
+            ratio_regular = np.nan
+            
+        print(f"Regular multi-segment - Max abs exponential term for even segments: {max_abs_even_regular:.6f}")
+        print(f"Regular multi-segment - Max abs exponential term for odd segments: {max_abs_odd_regular:.6f}")
+        print(f"Regular multi-segment - Overall max abs exponential term: {overall_max_abs_regular:.6f}")
+        print(f"Regular multi-segment - Ratio (abs(max_even) - abs(max_odd))/abs(overall_max): {ratio_regular:.6f}")
+    
+    # Process alternating-sign multi-segment exponential results
+    if 'alternating_sign_exponential' in fit_results and fit_results['alternating_sign_exponential']:
+        print("Processing alternating-sign multi-segment exponential terms...")
+        
+        # Extract b parameters (exponential terms) from alternating-sign multi-segment fit
+        alt_b_params = []
+        if isinstance(fit_results['alternating_sign_exponential']['params'][0], tuple):
+            # If params are stored as tuples (a, b, c)
+            for i, (a, b, c) in enumerate(fit_results['alternating_sign_exponential']['params']):
+                alt_b_params.append(b)
+                # Update existing data or add new entries
+                if i < len(exponential_terms_data):
+                    exponential_terms_data[i]['Alternating_Sign_Exponential_Term'] = b
+                    exponential_terms_data[i]['Alternating_Sign_a_Parameter'] = a
+                    exponential_terms_data[i]['Alternating_Sign_c_Parameter'] = c
+                    exponential_terms_data[i]['Alternating_Sign_Equation'] = f"{a:.6f} * exp({b:.6f} * x) + {c:.6f}"
+                else:
+                    exponential_terms_data.append({
+                        'Segment_Number': i + 1,
+                        'Segment_Type': 'Even' if (i + 1) % 2 == 0 else 'Odd',
+                        'Regular_Multi_Segment_Exponential_Term': np.nan,
+                        'Regular_Multi_Segment_a_Parameter': np.nan,
+                        'Regular_Multi_Segment_c_Parameter': np.nan,
+                        'Regular_Multi_Segment_Equation': 'N/A',
+                        'Alternating_Sign_Exponential_Term': b,
+                        'Alternating_Sign_a_Parameter': a,
+                        'Alternating_Sign_c_Parameter': c,
+                        'Alternating_Sign_Equation': f"{a:.6f} * exp({b:.6f} * x) + {c:.6f}"
+                    })
+        else:
+            # If params are stored as dictionaries
+            for i, params in enumerate(fit_results['alternating_sign_exponential']['params']):
+                b = params['b']
+                alt_b_params.append(b)
+                # Update existing data or add new entries
+                if i < len(exponential_terms_data):
+                    exponential_terms_data[i]['Alternating_Sign_Exponential_Term'] = b
+                    exponential_terms_data[i]['Alternating_Sign_a_Parameter'] = params['a']
+                    exponential_terms_data[i]['Alternating_Sign_c_Parameter'] = params['c']
+                    exponential_terms_data[i]['Alternating_Sign_Equation'] = f"{params['a']:.6f} * exp({b:.6f} * x) + {params['c']:.6f}"
+                else:
+                    exponential_terms_data.append({
+                        'Segment_Number': i + 1,
+                        'Segment_Type': 'Even' if (i + 1) % 2 == 0 else 'Odd',
+                        'Regular_Multi_Segment_Exponential_Term': np.nan,
+                        'Regular_Multi_Segment_a_Parameter': np.nan,
+                        'Regular_Multi_Segment_c_Parameter': np.nan,
+                        'Regular_Multi_Segment_Equation': 'N/A',
+                        'Alternating_Sign_Exponential_Term': b,
+                        'Alternating_Sign_a_Parameter': params['a'],
+                        'Alternating_Sign_c_Parameter': params['c'],
+                        'Alternating_Sign_Equation': f"{params['a']:.6f} * exp({b:.6f} * x) + {params['c']:.6f}"
+                    })
+        
+        # Calculate averages for even and odd segments (alternating-sign)
+        even_segments_alt = [b for i, b in enumerate(alt_b_params) if (i + 1) % 2 == 0]
+        odd_segments_alt = [b for i, b in enumerate(alt_b_params) if (i + 1) % 2 == 1]
+        
+        avg_even_alt = np.mean(even_segments_alt) if even_segments_alt else np.nan
+        avg_odd_alt = np.mean(odd_segments_alt) if odd_segments_alt else np.nan
+        
+        print(f"Alternating-sign - Average exponential term for even segments: {avg_even_alt:.6f}")
+        print(f"Alternating-sign - Average exponential term for odd segments: {avg_odd_alt:.6f}")
+        
+        # Calculate max absolute exponential terms and the ratio
+        max_abs_even_alt = max([abs(b) for i, b in enumerate(alt_b_params) if (i + 1) % 2 == 0]) if even_segments_alt else np.nan
+        max_abs_odd_alt = max([abs(b) for i, b in enumerate(alt_b_params) if (i + 1) % 2 == 1]) if odd_segments_alt else np.nan
+        overall_max_abs_alt = max([abs(b) for b in alt_b_params]) if alt_b_params else np.nan
+        
+        if not np.isnan(overall_max_abs_alt) and overall_max_abs_alt != 0:
+            ratio_alt = (max_abs_even_alt - max_abs_odd_alt) / overall_max_abs_alt
+        else:
+            ratio_alt = np.nan
+            
+        print(f"Alternating-sign - Max abs exponential term for even segments: {max_abs_even_alt:.6f}")
+        print(f"Alternating-sign - Max abs exponential term for odd segments: {max_abs_odd_alt:.6f}")
+        print(f"Alternating-sign - Overall max abs exponential term: {overall_max_abs_alt:.6f}")
+        print(f"Alternating-sign - Ratio (abs(max_even) - abs(max_odd))/abs(overall_max): {ratio_alt:.6f}")
+    
+    # Create DataFrame and add average rows
+    if exponential_terms_data:
+        df_exponential_terms = pd.DataFrame(exponential_terms_data)
+        
+        # Add summary rows for averages
+        if 'multi_segment_exponential' in fit_results and fit_results['multi_segment_exponential']:
+            # Add average rows for regular multi-segment
+            avg_even_row = {
+                'Segment_Number': 'AVG_EVEN',
+                'Segment_Type': 'Even',
+                'Regular_Multi_Segment_Exponential_Term': avg_even_regular,
+                'Regular_Multi_Segment_a_Parameter': np.nan,
+                'Regular_Multi_Segment_c_Parameter': np.nan,
+                'Regular_Multi_Segment_Equation': f"Average b = {avg_even_regular:.6f}"
+            }
+            
+            avg_odd_row = {
+                'Segment_Number': 'AVG_ODD',
+                'Segment_Type': 'Odd',
+                'Regular_Multi_Segment_Exponential_Term': avg_odd_regular,
+                'Regular_Multi_Segment_a_Parameter': np.nan,
+                'Regular_Multi_Segment_c_Parameter': np.nan,
+                'Regular_Multi_Segment_Equation': f"Average b = {avg_odd_regular:.6f}"
+            }
+            
+            # Add ratio calculation row for regular multi-segment
+            ratio_row_regular = {
+                'Segment_Number': 'RATIO_CALC',
+                'Segment_Type': 'Calculation',
+                'Regular_Multi_Segment_Exponential_Term': ratio_regular,
+                'Regular_Multi_Segment_a_Parameter': np.nan,
+                'Regular_Multi_Segment_c_Parameter': np.nan,
+                'Regular_Multi_Segment_Equation': f"(abs(max_even) - abs(max_odd))/abs(overall_max) = {ratio_regular:.6f}"
+            }
+            
+            if 'alternating_sign_exponential' in fit_results and fit_results['alternating_sign_exponential']:
+                avg_even_row['Alternating_Sign_Exponential_Term'] = avg_even_alt
+                avg_even_row['Alternating_Sign_a_Parameter'] = np.nan
+                avg_even_row['Alternating_Sign_c_Parameter'] = np.nan
+                avg_even_row['Alternating_Sign_Equation'] = f"Average b = {avg_even_alt:.6f}"
+                
+                avg_odd_row['Alternating_Sign_Exponential_Term'] = avg_odd_alt
+                avg_odd_row['Alternating_Sign_a_Parameter'] = np.nan
+                avg_odd_row['Alternating_Sign_c_Parameter'] = np.nan
+                avg_odd_row['Alternating_Sign_Equation'] = f"Average b = {avg_odd_alt:.6f}"
+                
+                ratio_row_regular['Alternating_Sign_Exponential_Term'] = ratio_alt
+                ratio_row_regular['Alternating_Sign_a_Parameter'] = np.nan
+                ratio_row_regular['Alternating_Sign_c_Parameter'] = np.nan
+                ratio_row_regular['Alternating_Sign_Equation'] = f"(abs(max_even) - abs(max_odd))/abs(overall_max) = {ratio_alt:.6f}"
+            
+            # Add the average rows and ratio calculation to the DataFrame
+            df_exponential_terms = pd.concat([
+                df_exponential_terms,
+                pd.DataFrame([avg_even_row, avg_odd_row, ratio_row_regular])
+            ], ignore_index=True)
+        
+        # Save to CSV
+        exponential_terms_csv_path = os.path.join(output_dir, 'exponential_terms_analysis.csv')
+        df_exponential_terms.to_csv(exponential_terms_csv_path, index=False)
+        print(f"Saved exponential terms analysis to: {exponential_terms_csv_path}")
+        
+        return df_exponential_terms, exponential_terms_csv_path
+    else:
+        print("No exponential terms data to save.")
+        return None, None
+
+
 # Define alternating-sign multi-segment exponential function
 def alternating_exp_func(x, *params):
     y = np.zeros_like(x, dtype=float)
@@ -427,6 +637,11 @@ except Exception as e:
         'segment_r_squared': alt_segment_r_squared,
         'segment_length': segment_length
     }
+
+
+# Call the function to save exponential terms analysis
+exponential_terms_df, exponential_terms_path = save_exponential_terms_analysis()
+
 
 # Determine the best model based on R-squared
 models = [model for model in fit_results if fit_results[model] is not None]
