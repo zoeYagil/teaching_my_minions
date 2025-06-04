@@ -51,10 +51,93 @@ def multi_exp_func(x, *params):
     
     return y
 
+
+# Load and process additional CSV data
+def load_and_process_additional_data():
+    """Load additional CSV data and group by time intervals"""
+    additional_file = "/Users/danielsinausia/Documents/Experiments/DS_00145/Reconstruction_based_on_CO_peak_in_eigenspectra/1101_to_3999/Reconstruction_based_on_CO_peak_in_eigenspectra_withoutbackground_correction_integrated_areas.csv"
+    
+    try:
+        # Load the additional CSV file
+        additional_data = pd.read_csv(additional_file)
+        print(f"Successfully loaded additional data with {len(additional_data)} rows")
+        
+        # Check if required columns exist
+        if 'Time (s)' not in additional_data.columns:
+            print("Warning: 'Time (s)' column not found in additional data")
+            return None
+        if 'Mean 3360' not in additional_data.columns:
+            print("Warning: 'Mean 3360' column not found in additional data")
+            return None
+        
+        # Create time groups (0-100, 100-200, etc.)
+        additional_data['Time_Group'] = (additional_data['Time (s)'] // 100).astype(int)
+        
+        # Calculate max absolute values for each time group
+        time_group_stats = []
+        for group_num in sorted(additional_data['Time_Group'].unique()):
+            group_data = additional_data[additional_data['Time_Group'] == group_num]
+            time_range_start = group_num * 100
+            time_range_end = (group_num + 1) * 100
+            
+            # Calculate max absolute value for Mean 3360 column
+            mean_3360_values = group_data['Mean 3360'].dropna()
+            if len(mean_3360_values) > 0:
+                max_abs_mean_3360 = mean_3360_values.abs().max()
+            else:
+                max_abs_mean_3360 = np.nan
+            
+            time_group_stats.append({
+                'Time_Group_Number': group_num + 1,  # 1-indexed to match segment numbers
+                'Time_Range': f"{time_range_start}-{time_range_end}",
+                'Time_Group_Type': 'Even' if (group_num + 1) % 2 == 0 else 'Odd',
+                'Max_Abs_Mean_3360': max_abs_mean_3360,
+                'Data_Points_Count': len(group_data)
+            })
+            
+            print(f"Time group {group_num + 1} ({time_range_start}-{time_range_end}): Max abs Mean 3360 = {max_abs_mean_3360:.6f}, Data points = {len(group_data)}")
+        
+        # Calculate averages for even and odd time groups
+        even_groups = [stats for stats in time_group_stats if stats['Time_Group_Type'] == 'Even']
+        odd_groups = [stats for stats in time_group_stats if stats['Time_Group_Type'] == 'Odd']
+        
+        even_max_abs_values = [stats['Max_Abs_Mean_3360'] for stats in even_groups if not np.isnan(stats['Max_Abs_Mean_3360'])]
+        odd_max_abs_values = [stats['Max_Abs_Mean_3360'] for stats in odd_groups if not np.isnan(stats['Max_Abs_Mean_3360'])]
+        
+        avg_even_max_abs = np.mean(even_max_abs_values) if even_max_abs_values else np.nan
+        avg_odd_max_abs = np.mean(odd_max_abs_values) if odd_max_abs_values else np.nan
+        
+        # Calculate overall maximum and ratio
+        all_max_abs_values = [stats['Max_Abs_Mean_3360'] for stats in time_group_stats if not np.isnan(stats['Max_Abs_Mean_3360'])]
+        overall_max_abs = max(all_max_abs_values) if all_max_abs_values else np.nan
+        
+        if not np.isnan(overall_max_abs) and overall_max_abs != 0:
+            ratio_mean_3360 = (avg_even_max_abs - avg_odd_max_abs) / overall_max_abs
+        else:
+            ratio_mean_3360 = np.nan
+        
+        print(f"Average max abs Mean 3360 for even time groups: {avg_even_max_abs:.6f}")
+        print(f"Average max abs Mean 3360 for odd time groups: {avg_odd_max_abs:.6f}")
+        print(f"Overall max abs Mean 3360: {overall_max_abs:.6f}")
+        print(f"Ratio (avg_even_max - avg_odd_max)/overall_max: {ratio_mean_3360:.6f}")
+        
+        return {
+            'time_group_stats': time_group_stats,
+            'avg_even_max_abs': avg_even_max_abs,
+            'avg_odd_max_abs': avg_odd_max_abs,
+            'overall_max_abs': overall_max_abs,
+            'ratio_mean_3360': ratio_mean_3360
+        }
+        
+    except Exception as e:
+        print(f"Error loading additional data: {str(e)}")
+        return None
+
+
 # Save exponential terms analysis for multi-segment fits
 def save_exponential_terms_analysis():
     """Save CSV with exponential terms from multi-segment fits"""
-    
+    additional_data_results = load_and_process_additional_data()
     exponential_terms_data = []
     
     # Process regular multi-segment exponential results
@@ -73,7 +156,9 @@ def save_exponential_terms_analysis():
                     'Regular_Multi_Segment_Exponential_Term': b,
                     'Regular_Multi_Segment_a_Parameter': a,
                     'Regular_Multi_Segment_c_Parameter': c,
-                    'Regular_Multi_Segment_Equation': f"{a:.6f} * exp({b:.6f} * x) + {c:.6f}"
+                    'Regular_Multi_Segment_Equation': f"{a:.6f} * exp({b:.6f} * x) + {c:.6f}",
+                    'Time_Range': additional_data_results['time_group_stats'][i]['Time_Range'] if additional_data_results and i < len(additional_data_results['time_group_stats']) else 'N/A',
+                    'Max_Abs_Mean_3360': additional_data_results['time_group_stats'][i]['Max_Abs_Mean_3360'] if additional_data_results and i < len(additional_data_results['time_group_stats']) else np.nan
                 })
         else:
             # If params are stored as dictionaries
@@ -86,7 +171,9 @@ def save_exponential_terms_analysis():
                     'Regular_Multi_Segment_Exponential_Term': b,
                     'Regular_Multi_Segment_a_Parameter': params['a'],
                     'Regular_Multi_Segment_c_Parameter': params['c'],
-                    'Regular_Multi_Segment_Equation': f"{params['a']:.6f} * exp({b:.6f} * x) + {params['c']:.6f}"
+                    'Regular_Multi_Segment_Equation': f"{params['a']:.6f} * exp({b:.6f} * x) + {params['c']:.6f}",
+                    'Time_Range': additional_data_results['time_group_stats'][i]['Time_Range'] if additional_data_results and i < len(additional_data_results['time_group_stats']) else 'N/A',
+                    'Max_Abs_Mean_3360': additional_data_results['time_group_stats'][i]['Max_Abs_Mean_3360'] if additional_data_results and i < len(additional_data_results['time_group_stats']) else np.nan
                 })
         
         # Calculate averages for even and odd segments (regular multi-segment)
@@ -141,7 +228,9 @@ def save_exponential_terms_analysis():
                         'Alternating_Sign_Exponential_Term': b,
                         'Alternating_Sign_a_Parameter': a,
                         'Alternating_Sign_c_Parameter': c,
-                        'Alternating_Sign_Equation': f"{a:.6f} * exp({b:.6f} * x) + {c:.6f}"
+                        'Alternating_Sign_Equation': f"{a:.6f} * exp({b:.6f} * x) + {c:.6f}",
+                        'Time_Range': additional_data_results['time_group_stats'][i]['Time_Range'] if additional_data_results and i < len(additional_data_results['time_group_stats']) else 'N/A',
+                        'Max_Abs_Mean_3360': additional_data_results['time_group_stats'][i]['Max_Abs_Mean_3360'] if additional_data_results and i < len(additional_data_results['time_group_stats']) else np.nan
                     })
         else:
             # If params are stored as dictionaries
@@ -165,7 +254,9 @@ def save_exponential_terms_analysis():
                         'Alternating_Sign_Exponential_Term': b,
                         'Alternating_Sign_a_Parameter': params['a'],
                         'Alternating_Sign_c_Parameter': params['c'],
-                        'Alternating_Sign_Equation': f"{params['a']:.6f} * exp({b:.6f} * x) + {params['c']:.6f}"
+                        'Alternating_Sign_Equation': f"{params['a']:.6f} * exp({b:.6f} * x) + {params['c']:.6f}",
+                        'Time_Range': additional_data_results['time_group_stats'][i]['Time_Range'] if additional_data_results and i < len(additional_data_results['time_group_stats']) else 'N/A',
+                        'Max_Abs_Mean_3360': additional_data_results['time_group_stats'][i]['Max_Abs_Mean_3360'] if additional_data_results and i < len(additional_data_results['time_group_stats']) else np.nan
                     })
         
         # Calculate averages for even and odd segments (alternating-sign)
