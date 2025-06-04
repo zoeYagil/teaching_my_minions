@@ -90,7 +90,7 @@ def load_and_analyze_data(csv_path):
         return None, None
 
 def create_pentagon_plot(values, output_path):
-    """Create a pentagon radar plot with the given values"""
+    """Create a pentagon radar plot with the given values - pentagons only, no circles"""
     
     # Pentagon corner labels
     labels = [
@@ -131,55 +131,86 @@ def create_pentagon_plot(values, output_path):
     N = len(labels)
     
     # Calculate angles for each corner (starting from top, going clockwise)
-    angles = [n / float(N) * 2 * np.pi for n in range(N)]
-    angles += angles[:1]  # Complete the circle
+    # For pentagon: 0° at top, then 72° intervals
+    angles = [np.pi/2 - (2 * np.pi * i / N) for i in range(N)]
     
-    # Add first value to end to complete the polygon
-    normalized_values += normalized_values[:1]
-    corner_values += corner_values[:1]
+    # Create regular plot (not polar)
+    fig, ax = plt.subplots(figsize=(12, 12))
     
-    # Create the plot
-    fig, ax = plt.subplots(figsize=(12, 12), subplot_kw=dict(projection='polar'))
+    # Draw reference pentagons (concentric)
+    pentagon_levels = [0.2, 0.4, 0.6, 0.8, 1.0]
     
-    # Draw the reference grid (concentric pentagons)
-    for r in [0.2, 0.4, 0.6, 0.8, 1.0]:
-        ax.plot(angles, [r]*len(angles), 'gray', linewidth=0.5, alpha=0.5)
+    for level in pentagon_levels:
+        # Calculate pentagon vertices for this level
+        pentagon_x = [level * np.cos(angle) for angle in angles]
+        pentagon_y = [level * np.sin(angle) for angle in angles]
+        pentagon_x.append(pentagon_x[0])  # Close the pentagon
+        pentagon_y.append(pentagon_y[0])
+        
+        # Draw pentagon outline
+        ax.plot(pentagon_x, pentagon_y, 'gray', linewidth=0.5, alpha=0.5)
     
-    # Draw radial lines
-    for angle in angles[:-1]:
-        ax.plot([angle, angle], [0, 1], 'gray', linewidth=0.5, alpha=0.5)
+    # Draw radial lines from center to each corner
+    for angle in angles:
+        ax.plot([0, np.cos(angle)], [0, np.sin(angle)], 'gray', linewidth=0.5, alpha=0.5)
     
-    # Plot the data
-    ax.plot(angles, normalized_values, 'o-', linewidth=3, label='Data', color='blue', markersize=8)
-    ax.fill(angles, normalized_values, alpha=0.25, color='lightblue')
+    # Calculate data points
+    data_x = [normalized_values[i] * np.cos(angles[i]) for i in range(N)]
+    data_y = [normalized_values[i] * np.sin(angles[i]) for i in range(N)]
+    data_x.append(data_x[0])  # Close the shape
+    data_y.append(data_y[0])
+    
+    # Plot the data as a filled pentagon
+    ax.plot(data_x, data_y, 'o-', linewidth=3, color='blue', markersize=8)
+    ax.fill(data_x, data_y, alpha=0.25, color='lightblue')
     
     # Add labels and values
-    for i, (angle, label, value) in enumerate(zip(angles[:-1], labels, corner_values[:-1])):
+    for i, (angle, label, value) in enumerate(zip(angles, labels, corner_values)):
         # Position labels outside the plot
-        ax.text(angle, 1.15, label, ha='center', va='center', fontsize=11, fontweight='bold')
+        label_distance = 1.3
+        label_x = label_distance * np.cos(angle)
+        label_y = label_distance * np.sin(angle)
+        
+        ax.text(label_x, label_y, label, ha='center', va='center', 
+                fontsize=11, fontweight='bold')
+        
         # Add value below the label
-        ax.text(angle, 1.25, f'{value:.4f}', ha='center', va='center', fontsize=10, 
-                bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.8))
+        value_distance = 1.45
+        value_x = value_distance * np.cos(angle)
+        value_y = value_distance * np.sin(angle)
+        
+        ax.text(value_x, value_y, f'{value:.4f}', ha='center', va='center', 
+                fontsize=10, bbox=dict(boxstyle='round,pad=0.2', facecolor='white', alpha=0.8))
     
-    # Configure the plot
-    ax.set_ylim(0, 1)
-    ax.set_rlabel_position(0)
-    ax.set_rticks([0.2, 0.4, 0.6, 0.8, 1.0])
+    # Set equal aspect ratio and limits
+    ax.set_xlim(-1.6, 1.6)
+    ax.set_ylim(-1.6, 1.6)
+    ax.set_aspect('equal')
     
-    # Create custom r-tick labels showing the actual value ranges
+    # Add concentric pentagon labels showing scale
     if max_abs_val > 0:
-        rtick_labels = []
-        for r in [0.2, 0.4, 0.6, 0.8, 1.0]:
+        for i, level in enumerate([0.2, 0.4, 0.6, 0.8, 1.0]):
             # Convert normalized value back to original scale
-            if r <= 0.1:
+            if level <= 0.1:
                 original_val = 0
             else:
-                original_val = ((r - 0.1) / 0.9) * max_abs_val
-            rtick_labels.append(f'{original_val:.3f}')
-        ax.set_yticklabels(rtick_labels, fontsize=9)
+                original_val = ((level - 0.1) / 0.9) * max_abs_val
+            
+            # Place scale labels along one of the radial lines
+            scale_x = level * np.cos(angles[0]) * 0.8  # Slightly inside to avoid overlap
+            scale_y = level * np.sin(angles[0]) * 0.8
+            
+            ax.text(scale_x, scale_y, f'{original_val:.3f}', 
+                   fontsize=8, ha='center', va='center',
+                   bbox=dict(boxstyle='round,pad=0.1', facecolor='lightyellow', alpha=0.7))
     
-    # Remove theta tick labels
-    ax.set_xticklabels([])
+    # Remove axes
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['bottom'].set_visible(False)
+    ax.spines['left'].set_visible(False)
     
     # Add title
     plt.title('Pentagon Analysis Plot\nExponential Terms and Mean 3360 Relationships', 
@@ -204,6 +235,7 @@ def create_pentagon_plot(values, output_path):
     print(f"Pentagon plot saved to: {png_path} and {svg_path}")
     
     return png_path, svg_path
+
 
 def main():
     """Main function to run the pentagon analysis"""
