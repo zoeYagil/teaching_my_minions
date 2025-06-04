@@ -115,11 +115,11 @@ def create_multi_pentagon_plot(datasets: Dict[str, Dict], output_path: str):
     
     # Pentagon corner labels
     labels = [
-        "Corner 1\n(Avg Even Exp Term)",
-        "Corner 2\n(Avg Odd Exp Term)", 
-        "Corner 3\n(Exp Term Ratio)",
-        "Corner 4\n(Max Mean 3360 Diff)",
-        "Corner 5\n(Segment Ratio)"
+        "Average Exponential Term (high overpotential",
+        "Average Exponential Term (low overpotential", 
+        "Abs Max Exp Term High Overpotential - Abs Max Exp Term Low Overpotential)/\nAbs Max Exp Term Overall",
+        "Difference Intensity Peak 3360 Max High - MLow Overpotential",
+        "Ratio between difference of exponential terms \n(last - first high overpotential) and the intensities \n of peak at 3360 (last - first high overpotential)"
     ]
     
     # Colors for different datasets
@@ -302,11 +302,11 @@ def save_combined_results(datasets: Dict[str, Dict], output_path: str):
         for label, results in datasets.items():
             f.write(f"DATASET: {label}\n")
             f.write("-" * 40 + "\n")
-            f.write(f"Corner 1 (Average Even Exponential Term): {results['corner_1']:.6f}\n")
-            f.write(f"Corner 2 (Average Odd Exponential Term): {results['corner_2']:.6f}\n")
-            f.write(f"Corner 3 (Exponential Term Ratio): {results['corner_3']:.6f}\n")
-            f.write(f"Corner 4 (Max Mean 3360 Difference): {results['corner_4']:.6f}\n")
-            f.write(f"Corner 5 (Segment Ratio): {results['corner_5']:.6f}\n\n")
+            f.write(f"Average Exponential Term (high overpotential): {results['corner_1']:.6f}\n")
+            f.write(f"Average Exponential Term (low overpotential): {results['corner_2']:.6f}\n")
+            f.write(f"(Abs Max Exp Term High Overpotential - Abs Max Exp Term Low Overpotential)/Abs Max Exp Term Overall: {results['corner_3']:.6f}\n")
+            f.write(f"Difference Intensity Peak 3360 Max High - MLow Overpotential: {results['corner_4']:.6f}\n")
+            f.write(f"Ratio between difference of exponential terms (last - first high overpotential) and the intensities of peak at 3360 (last - first high overpotential)): {results['corner_5']:.6f}\n\n")
         
         f.write("CALCULATION DETAILS:\n")
         f.write("-" * 40 + "\n")
