@@ -21,11 +21,8 @@ mpl.use('SVG')
 # Set font settings for better compatibility with SVG text
 mpl.rcParams['svg.fonttype'] = 'none'  # Do not convert fonts to paths
 
-base_dir = "/Users/danielsinausia/Documents/Experiments/"
-include_folders = {"DS_00132", "DS_00133", "DS_00134", "DS_00127", "DS_00163", "DS_00131",
-                       "DS_00138", "DS_00135", "DS_00139", "DS_00136", "DS_00140", "DS_00137",
-                       "DS_00141", "DS_00144", "DS_00142", "DS_00145", "DS_00143", "DS_00146",
-                       "DS_00181", "DS_00180", "DS_00148", "DS_00152", "DS_00149", "DS_00153"}
+base_dir = r"C:\Users\zoe-talya.ya\OneDrive - Technion\Documents\PhD\Results\FTIR"
+include_folders = {"ZY_00019"}
 
 
 
@@ -55,7 +52,7 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
                           end_reciprocal_cm=3999,
                           start_reciprocal_cm_bkg=2500, 
                           end_reciprocal_cm_bkg=3997,
-                          spectrum_to_plot_as_example=600, 
+                          spectrum_to_plot_as_example=600, #The spectrom number. 
                           experiment_classification='_08',
                           #experiment_classification = folder_name[-3:]
                           liquid='H2O'):
@@ -279,7 +276,7 @@ def process_spectrum_file(file_path, start_reciprocal_cm=1101,
     
     file_name = os.path.basename(file_path)
     
-    if file_name.startswith("DS") or file_name.startswith("CZ"):
+    if file_name.startswith("DS") or file_name.startswith("ZY"):
         # Process for files starting with "DS"
         df = pd.read_csv(file_path, header=None, skiprows=1)  # Original 955, others 0
         df = df.iloc[:, :]  # Activate for original
@@ -505,7 +502,7 @@ if __name__ == "__main__":
             csv_files.extend([
                 os.path.join(root, file) 
                 for file in files 
-                if file.endswith(".csv") and (file.startswith("DS") or file.startswith("CZ") or file.startswith("ReconstructedData"))
+                if file.endswith(".csv") and (file.startswith("DS") or file.startswith("ZY") or file.startswith("ReconstructedData"))
             ])
 
         if not csv_files:
