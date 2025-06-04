@@ -53,9 +53,23 @@ def multi_exp_func(x, *params):
 
 
 # Load and process additional CSV data
-def load_and_process_additional_data():
+def load_and_process_additional_data(input_file_path):
     """Load additional CSV data and group by time intervals"""
-    additional_file = "/Users/danielsinausia/Documents/Experiments/DS_00145/Reconstruction_based_on_CO_peak_in_eigenspectra/1101_to_3999/Reconstruction_based_on_CO_peak_in_eigenspectra_withoutbackground_correction_integrated_areas.csv"
+    
+    # Get the directory containing the input file
+    input_dir = os.path.dirname(input_file_path)
+    
+    # Extract the folder name (e.g., "Interfacial_layer" from the input path)
+    folder_name = os.path.basename(input_dir)
+    
+    # Construct the path to the additional CSV file
+    additional_file = os.path.join(
+        input_dir, 
+        "1101_to_3999", 
+        f"{folder_name}_withoutbackground_correction_integrated_areas.csv"
+    )
+    
+    print(f"Looking for additional file at: {additional_file}")
     
     try:
         # Load the additional CSV file
@@ -134,10 +148,11 @@ def load_and_process_additional_data():
         return None
 
 
+
 # Save exponential terms analysis for multi-segment fits
 def save_exponential_terms_analysis():
     """Save CSV with exponential terms from multi-segment fits"""
-    additional_data_results = load_and_process_additional_data()
+    additional_data_results = load_and_process_additional_data(input_file)
     exponential_terms_data = []
     
     # Process regular multi-segment exponential results
